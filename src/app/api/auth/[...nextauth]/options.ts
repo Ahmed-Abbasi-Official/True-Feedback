@@ -29,6 +29,12 @@ export const authOptions:NextAuthOptions ={
                         if(!user.isVerified){
                             throw new Error("Please verified your account first");
                         }
+                        const isPasswordCorrect = await bcrypt.compare(credentials.password,user.password);
+                        if(isPasswordCorrect){
+                            return user;
+                        }else{
+                            throw new Error("Incorrect Password");
+                        }
                     } catch (error:any) {
                         throw new Error(error);
                     }
@@ -36,5 +42,21 @@ export const authOptions:NextAuthOptions ={
 
             }
         )
-    ]
+    ],
+    callbacks: {
+       
+        async jwt({ token, user}) {
+          return token
+        },
+        async session({ session, token }) {
+          return session
+        },
+    },
+    pages:{
+        signIn:'/sign-in'
+    },
+    session:{
+        strategy:'jwt'
+    },
+    secret:process.env.NEXT_AUTH_SECRET
 }
