@@ -5,24 +5,25 @@ import bcrypt from "bcryptjs";
 
 import { sendVerificationEmail } from "@/helpers/sendVerificationEmail";
 
-async function POST(request: Request) {
+export async function POST(request: Request) {
     await dbConnect();
 
     try {
         const { username, email, password } = await request.json();
+        console.log(username)
 
         //  CHECK FOR ( USERNAME ) DUPLICATION
 
         const existingUsername = await UserModel.findOne({username})
 
         if(existingUsername){
-            Response.json({
+            return Response.json({
                 success:false,
                 message:"Username already exist"
             },{
                 status:400
             })
-            return;
+            
         };
 
         const existingEmail = await UserModel.findOne({email});
@@ -58,11 +59,10 @@ async function POST(request: Request) {
             await newUser.save();
         }
 
-       const emailResponse = await sendVerificationEmail(
-            email,
-            username,
-            verifyCode
-        )
+        console.log("Sending verification email...");
+        const emailResponse = await sendVerificationEmail(email, username, verifyCode);
+        console.log("Email response: ", emailResponse);
+        
 
         if(!emailResponse.success){
             return Response.json({
@@ -70,6 +70,8 @@ async function POST(request: Request) {
                 message:(emailResponse).message
             },{status:500})
         }
+
+
 
         return Response.json({
             success:true,
