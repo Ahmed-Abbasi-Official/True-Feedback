@@ -10,7 +10,7 @@ export async function POST(request: Request) {
 
     try {
         const { username, email, password } = await request.json();
-        console.log(username)
+        // console.log(username)
 
         //  CHECK FOR ( USERNAME ) DUPLICATION
 

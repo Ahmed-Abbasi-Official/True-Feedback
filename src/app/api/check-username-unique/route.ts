@@ -22,7 +22,7 @@ export async function GET(request: Request) {
                 status:405
             }
         )
-    }
+    };
 
     await dbConnect();
 
@@ -33,6 +33,7 @@ export async function GET(request: Request) {
         const queryParam = {
             username:searchParams.get("username")
         };
+        
 
         const result = usernameQuerySchema.safeParse(queryParam);
 
@@ -72,8 +73,9 @@ export async function GET(request: Request) {
                     status:400
                 }
             )
-        }
-        console.log("result : ",result)
+        };
+
+        console.log("result : ",result);
 
         return  Response.json(
             {
@@ -83,21 +85,21 @@ export async function GET(request: Request) {
             {
                 status:200
             }
-        )
+        );
 
 
 
     } catch (error) {
         console.error("Error Checking in username : ", error);
 
-        Response.json({
+      return  Response.json({
             success: false,
             message: "Error checking in username"
         },
             {
                 status: 500
-            })
+            });
 
-    }
+    };
 
-}
+};
