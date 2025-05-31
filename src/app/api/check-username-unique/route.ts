@@ -61,6 +61,7 @@ export async function GET(request: Request) {
                 username
             }
         );
+        console.log(username)
 
         if(existingUsername)
         {

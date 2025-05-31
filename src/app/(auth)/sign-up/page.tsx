@@ -10,7 +10,7 @@ import axios, { AxiosError } from 'axios'
 import { LoaderCircle } from 'lucide-react';
 
 
-import { useDebounceValue } from 'usehooks-ts'
+import { useDebounceCallback, useDebounceValue } from 'usehooks-ts'
 import { useRouter } from 'next/navigation'
 import { signUpSchema } from '@/schemas/signUpSchema'
 import { ApiResponse } from '@/types/ApiResponse'
@@ -26,7 +26,7 @@ const page = () => {
   const [isCheckingUsername, setIsCheckingUsername] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const debounceUsername = useDebounceValue(username, 300);
+  const debounce = useDebounceCallback(setUsername, 300);
 
   const router = useRouter();
 
@@ -41,47 +41,50 @@ const page = () => {
     }
   );
 
-  // useEffect(() => {
+  useEffect(() => {
 
-  //   const checkUserUnique = async () => {
-  //     console.log(debounceUsername)
-  //   if (debounceUsername) {
-  //     setIsCheckingUsername(true)
-  //     setUserNameMessage('');
+    const checkUserUnique = async () => {
+    if (username) { 
+      setIsCheckingUsername(true)
+      setUserNameMessage('');
 
-  //     try {
-  //         const response = await axios.get(`/api/check-username-unique?username=${debounceUsername}`)
-  //         setUserNameMessage(response.data.message)
-
-
-
-  //     } catch (error) {
-  //       const axiosError = error as AxiosError<ApiResponse>;
-  //       setUserNameMessage(axiosError.response?.data.message ?? "Error in checking username")
-  //     }finally{
-  //       setIsCheckingUsername(false);
-  //     }
-
-  //   }
-
-  // }
-
-  // checkUserUnique();
+      try {
+          const response = await axios.get(`/api/check-username-unique?username=${username}`)
+          setUserNameMessage(response.data.message)
+          // console.log(usernameMessage);
 
 
 
+      } catch (error) {
+        const axiosError = error as AxiosError<ApiResponse>;
+        console.log(error)
+        setUserNameMessage(axiosError.response?.data.message ?? "Error in checking username")
+      }finally{
+        setIsCheckingUsername(false);
+      }
+
+    }
+
+  }
+
+  checkUserUnique();
 
 
 
 
-  // }, [debounceUsername])
+
+
+
+  }, [username])
 
   const onSubmit = async (data:any) => {
     console.log(data)
 
     try {
+      setIsSubmitting(true)
       const response = await axios.post('/api/sign-up', data);
       console.log("Response == ", response.data);
+      
       toast("Success", {
         description: response.data.message,
         action: {
@@ -89,9 +92,10 @@ const page = () => {
           onClick: () => console.log("Undo"),
         },
       });
-      router.replace(`/api/verify-code/${username}`)
+      router.replace(`/verify/${username}`)
     } catch (error) {
-      console.error("Error in Signup")
+      setIsSubmitting(true)
+      console.error("Error in Signup",error)
       toast("Error in Signup")
     } finally {
       setIsSubmitting(false)
@@ -123,10 +127,17 @@ const page = () => {
                     <Input placeholder="Enter username" {...field}
                       onChange={(e) => {
                         field.onChange(e.target.value);
-                        setUsername(e.target.value)
+                        debounce(e.target.value)
                       }}
                     />
-                  </FormControl>
+                      </FormControl>
+                    {isCheckingUsername && (
+                      <LoaderCircle className='animate-spin' />
+                      
+                    )}
+                    <p className={`text-sm ${usernameMessage === "This username is unique" ? "text-green-500": "text-red-500"}`}>
+                      test {usernameMessage}
+                    </p>
                   <FormMessage />
                 </FormItem>
               )}
